@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using System.Text;
 using CodeThinker.Infrastructure.Persistence;
 using CodeThinker.Domain.Repositories;
@@ -11,6 +12,9 @@ using CodeThinker.Infrastructure.Services;
 using CodeThinker.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Enable dynamic JSON serialization for json/jsonb columns
+NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
 
 // Add services to the container.
 
