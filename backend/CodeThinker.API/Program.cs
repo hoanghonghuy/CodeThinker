@@ -68,7 +68,26 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins(allowedOrigins)
+            .SetIsOriginAllowed(origin =>
+            {
+                // 1) Explicit whitelist from configuration
+                if (allowedOrigins.Any(o => string.Equals(o, origin, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+
+                // 2) Allow any https *.vercel.app origin (preview deployments, etc.)
+                if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    if (string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+                        && uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
