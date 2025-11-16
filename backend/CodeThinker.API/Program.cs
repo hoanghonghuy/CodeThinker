@@ -12,6 +12,7 @@ using CodeThinker.Infrastructure.Services;
 using CodeThinker.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Enable dynamic JSON serialization for json/jsonb columns
 NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
@@ -87,8 +88,9 @@ builder.Services.AddCors(options =>
 
 // Dependency Injection for Clean Architecture
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAuthService, JwtService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();
+builder.Services.AddScoped<ISeedService, SeedService>();
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
@@ -155,11 +157,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Seed database with C# learning content
+// Seed database with learning content
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    Task.Run(async () => await DatabaseSeeder.SeedDataAsync(context)).Wait();
+    var seedService = scope.ServiceProvider.GetRequiredService<ISeedService>();
+    Task.Run(async () => await seedService.SeedTracksAndChallengesAsync()).Wait();
 }
 
 app.Run();

@@ -179,8 +179,14 @@ export const authApi = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Login failed');
+      let message = 'Login failed';
+      try {
+        const error = await response.json();
+        message = error.error || message;
+      } catch {
+        // ignore JSON parse error
+      }
+      throw new Error(message);
     }
 
     return response.json();
@@ -196,8 +202,14 @@ export const authApi = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Registration failed');
+      let message = 'Registration failed';
+      try {
+        const error = await response.json();
+        message = error.error || message;
+      } catch {
+        // ignore JSON parse error
+      }
+      throw new Error(message);
     }
 
     return response.json();
