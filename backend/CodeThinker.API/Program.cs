@@ -58,7 +58,9 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
     ?? new[]
     {
         "http://localhost:3000",
-        "https://code-thinker-esb3g486w-hoanghonghuys-projects.vercel.app"
+        "https://code-thinker-esb3g486w-hoanghonghuys-projects.vercel.app",
+        "https://code-thinker-three.vercel.app",
+        "https://code-thinker-app.vercel.app"
     };
 
 builder.Services.AddCors(options =>
@@ -66,20 +68,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .SetIsOriginAllowed(origin =>
-            {
-                if (allowedOrigins.Any(o => string.Equals(o, origin, StringComparison.OrdinalIgnoreCase)))
-                {
-                    return true;
-                }
-
-                if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
-                {
-                    return uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase);
-                }
-
-                return false;
-            })
+            .WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
