@@ -4,7 +4,8 @@ import type {
   ChallengeStatus,
 } from "@/components/features/challenges/challenge-list";
 import type { Track, TrackStatus, TrackWithProgress } from "@/lib/tracks-mock";
-import { challengesApi, tracksApi, authApi } from "@/lib/backend-api";
+import type { UserChallengeProgress, ChallengeResult, ProfileResponse } from "./backend-api";
+import { authApi, profileApi, challengesApi, tracksApi, userProgressApi } from "./backend-api";
 
 export const ACCESS_TOKEN_KEY = "ct.accessToken";
 
@@ -60,9 +61,9 @@ import {
   type RecentActivityEntry,
 } from "@/lib/dashboard-mock";
 import {
-  getProfileStats,
-  getUserPreferences,
-  updateUserPreferences,
+  getProfileStats as getProfileStatsMock,
+  getUserPreferences as getUserPreferencesMock,
+  updateUserPreferences as updateUserPreferencesMock,
   type UserPreferences,
   type ProfileStats,
 } from "@/lib/profile-mock";
@@ -123,20 +124,97 @@ export const apiClient = {
     }
   },
 
-  // Dashboard - Still using mock data for now
+  async startChallenge(challengeId: string): Promise<UserChallengeProgress | null> {
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const progress = await challengesApi.startChallenge(token, challengeId);
+      return progress;
+    } catch (error) {
+      console.error("Failed to start challenge:", error);
+      throw error;
+    }
+  },
+
+  async submitChallenge(challengeId: string, solution: string): Promise<ChallengeResult | null> {
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const result = await challengesApi.submitChallenge(token, challengeId, solution);
+      return result;
+    } catch (error) {
+      console.error("Failed to submit challenge:", error);
+      throw error;
+    }
+  },
+
+  // Dashboard - Now using backend profile data
   async getDashboardSummary(): Promise<{
     summary: import("@/components/features/dashboard/dashboard-summary").DashboardSummaryData;
     focusAreas: import("@/components/features/dashboard/dashboard-summary").FocusArea[];
   }> {
-    return getDashboardSummaryMock();
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const profile = await profileApi.getProfile(token);
+      const stats = mapProfileToStats(profile);
+      const summary = {
+        points: stats.totalPoints,
+        level: stats.currentLevel,
+        streak: stats.streak,
+        completedChallenges: stats.completedChallenges,
+      };
+      // Focus areas are derived from profile for now
+      const focusAreas = [
+        { label: "Ngôn ngữ ưa thích", value: profile.preferredLanguage || "N/A" },
+        { label: "Trình độ", value: profile.selfAssessedLevel || "N/A" },
+      ];
+      return { summary, focusAreas };
+    } catch (error) {
+      console.error("Failed to fetch dashboard summary from backend, using mock data:", error);
+      return getDashboardSummaryMock();
+    }
   },
 
   async getDailyChallenge(): Promise<DailyChallengeSummary | null> {
-    return getDailyChallengeMock();
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const progress = await userProgressApi.getDailyProgress(token);
+      if (!progress) return null;
+      // Transform to DailyChallengeSummary shape
+      return {
+        id: progress.challengeId,
+        title: progress.challengeTitle,
+        difficulty: "Medium", // TODO: fetch from challenge details
+        topics: ["General"], // TODO: fetch from challenge details
+        shortDescription: "Daily challenge",
+      };
+    } catch (error) {
+      console.error("Failed to get daily challenge from backend, using mock data:", error);
+      return getDailyChallengeMock();
+    }
   },
 
   async getRecentActivity(): Promise<RecentActivityEntry[]> {
-    return getRecentActivityMock();
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const progress = await userProgressApi.getRecentProgress(token, 5);
+      // Transform to RecentActivityEntry shape
+      return progress.map(p => ({
+        id: p.challengeId,
+        challengeId: p.challengeId,
+        challengeTitle: p.challengeTitle,
+        language: "python", // TODO: fetch from challenge details
+        ranAt: p.completedAt ?? p.startedAt ?? new Date().toISOString(),
+        status: p.status === "completed" ? "success" : "error",
+        message: p.status === "completed" ? "Completed challenge" : "Started challenge",
+      }));
+    } catch (error) {
+      console.error("Failed to get recent activity from backend, using mock data:", error);
+      return getRecentActivityMock();
+    }
   },
 
   async getAchievementsPreview(): Promise<AchievementPreview[]> {
@@ -201,17 +279,54 @@ export const apiClient = {
     }
   },
 
-  // Profile & Settings - Still using mock data for now
+  // Profile & Settings
   async getProfileStats(): Promise<ProfileStats> {
-    return getProfileStats();
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const profile = await profileApi.getProfile(token);
+      return mapProfileToStats(profile);
+    } catch (error) {
+      console.error("Failed to fetch profile stats from backend, using mock data:", error);
+      return getProfileStatsMock();
+    }
   },
 
   async getUserPreferences(): Promise<UserPreferences> {
-    return getUserPreferences();
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const profile = await profileApi.getProfile(token);
+      return mapProfileToPreferences(profile);
+    } catch (error) {
+      console.error("Failed to fetch user preferences from backend, using mock data:", error);
+      return getUserPreferencesMock();
+    }
   },
 
   async updateUserPreferences(preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    return updateUserPreferences(preferences);
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+
+      // We expect callers to pass the full preference object; merge defaults otherwise
+      const current = await this.getUserPreferences();
+      const nextPrefs: UserPreferences = {
+        ...current,
+        ...preferences,
+        notifications: {
+          ...current.notifications,
+          ...(preferences.notifications ?? {}),
+        },
+      };
+
+      const payload = mapPreferencesToUpdateRequest(nextPrefs);
+      const profile = await profileApi.updateProfile(token, payload);
+      return mapProfileToPreferences(profile);
+    } catch (error) {
+      console.error("Failed to update preferences via backend, using mock storage:", error);
+      return updateUserPreferencesMock(preferences);
+    }
   },
 
   // Achievements - Still using mock data for now
@@ -260,21 +375,29 @@ export const apiClient = {
     return authApi.getCurrentUser(token);
   },
 
-  // Challenge interaction methods
-  async startChallenge(id: string) {
-    const token = getAuthToken();
-    return challengesApi.startChallenge(token, id);
-  },
-
-  async submitChallenge(id: string, solution: string) {
-    const token = getAuthToken();
-    return challengesApi.submitChallenge(token, id, solution);
-  },
-
   // Track interaction methods
   async startTrack(id: string) {
-    const token = getAuthToken();
-    return tracksApi.startTrack(token, id);
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const progress = await tracksApi.startTrack(token, id);
+      return progress;
+    } catch (error) {
+      console.error("Failed to start track:", error);
+      throw error;
+    }
+  },
+
+  async getTrackProgress(id: string) {
+    try {
+      const token = getAuthToken();
+      if (!token) throw new Error("Missing auth token");
+      const progress = await userProgressApi.getTrackProgress(token, id);
+      return progress;
+    } catch (error) {
+      console.error("Failed to get track progress:", error);
+      throw error;
+    }
   },
 };
 
@@ -357,4 +480,53 @@ function mapTrackStatusToEnum(status: string): TrackStatus {
     default:
       return 'not_started';
   }
+}
+
+function mapProfileToStats(profile: ProfileResponse): ProfileStats {
+  return {
+    totalPoints: profile.points ?? 0,
+    currentLevel: profile.selfAssessedLevel || "Independent",
+    streak: profile.streak ?? 0,
+    completedChallenges: profile.completedChallenges ?? 0,
+    totalChallenges: Math.max(profile.completedChallenges ?? 0, 0),
+    tracksCompleted: 0,
+    totalTracks: 0,
+    joinDate: profile.lastActive ?? new Date().toISOString(),
+  };
+}
+
+function mapProfileToPreferences(profile: ProfileResponse): UserPreferences {
+  return {
+    displayName: profile.displayName,
+    email: profile.email,
+    preferredLanguage: profile.preferredLanguage,
+    uiLanguage: (profile.uiLanguage as UserPreferences["uiLanguage"]) ?? "vi",
+    selfAssessedLevel: (profile.selfAssessedLevel as UserPreferences["selfAssessedLevel"]) ?? "Beginner",
+    editorTheme: (profile.editorTheme as UserPreferences["editorTheme"]) ?? "vs-dark",
+    editorFontSize: profile.editorFontSize ?? 14,
+    editorWordWrap: (profile.editorWordWrap as UserPreferences["editorWordWrap"]) ?? "on",
+    editorMinimap: profile.editorMinimap ?? true,
+    notifications: {
+      emailNotifications: profile.emailNotifications ?? true,
+      pushNotifications: profile.pushNotifications ?? true,
+      weeklyProgress: profile.weeklyProgress ?? true,
+    },
+  };
+}
+
+function mapPreferencesToUpdateRequest(preferences: UserPreferences) {
+  return {
+    email: preferences.email,
+    displayName: preferences.displayName,
+    preferredLanguage: preferences.preferredLanguage,
+    uiLanguage: preferences.uiLanguage,
+    selfAssessedLevel: preferences.selfAssessedLevel,
+    editorTheme: preferences.editorTheme,
+    editorFontSize: preferences.editorFontSize,
+    editorWordWrap: preferences.editorWordWrap,
+    editorMinimap: preferences.editorMinimap,
+    emailNotifications: preferences.notifications.emailNotifications,
+    pushNotifications: preferences.notifications.pushNotifications,
+    weeklyProgress: preferences.notifications.weeklyProgress,
+  };
 }

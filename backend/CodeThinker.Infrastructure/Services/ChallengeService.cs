@@ -272,6 +272,60 @@ public class ChallengeService : IChallengeService
                userSolution.Trim().Equals(correctSolution.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
+    public async Task<IEnumerable<UserChallengeProgressDto>> GetUserRecentProgressAsync(
+        Guid userId,
+        int count = 5,
+        CancellationToken cancellationToken = default)
+    {
+        var recentProgress = await _unitOfWork.UserChallenges.GetAllQueryable()
+            .Include(uc => uc.Challenge)
+            .Where(uc => uc.UserId == userId && uc.StartedAt.HasValue)
+            .OrderByDescending(uc => uc.StartedAt)
+            .Take(count)
+            .Select(uc => new UserChallengeProgressDto
+            {
+                ChallengeId = uc.ChallengeId,
+                ChallengeTitle = uc.Challenge.Title,
+                Status = uc.Status,
+                ProgressCurrent = uc.ProgressCurrent,
+                ProgressTotal = uc.ProgressTotal,
+                StartedAt = uc.StartedAt,
+                CompletedAt = uc.CompletedAt,
+                Attempts = uc.Attempts,
+                LastSolution = uc.Solution
+            })
+            .ToListAsync(cancellationToken);
+
+        return recentProgress;
+    }
+
+    public async Task<UserChallengeProgressDto?> GetDailyChallengeProgressAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        // For now, get the most recently started challenge as "daily"
+        // In a real implementation, you'd have a proper daily challenge system
+        var dailyProgress = await _unitOfWork.UserChallenges.GetAllQueryable()
+            .Include(uc => uc.Challenge)
+            .Where(uc => uc.UserId == userId && uc.StartedAt.HasValue)
+            .OrderByDescending(uc => uc.StartedAt)
+            .Select(uc => new UserChallengeProgressDto
+            {
+                ChallengeId = uc.ChallengeId,
+                ChallengeTitle = uc.Challenge.Title,
+                Status = uc.Status,
+                ProgressCurrent = uc.ProgressCurrent,
+                ProgressTotal = uc.ProgressTotal,
+                StartedAt = uc.StartedAt,
+                CompletedAt = uc.CompletedAt,
+                Attempts = uc.Attempts,
+                LastSolution = uc.Solution
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return dailyProgress;
+    }
+
     private int GetPointsForDifficulty(string difficulty)
     {
         return difficulty.ToLower() switch

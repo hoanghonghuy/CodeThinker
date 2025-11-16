@@ -25,12 +25,16 @@ export type CodeEditorPanelProps = {
     message: string;
     ranAt: Date;
   }) => void;
+  onSubmit?: (solution: string) => void;
+  isSubmitting?: boolean;
 };
 
 export function CodeEditorPanel({
   challengeId,
   initialLanguage = "python",
   onMockRun,
+  onSubmit,
+  isSubmitting,
 }: CodeEditorPanelProps) {
   const [language, setLanguage] = useState<SupportedLanguage>(initialLanguage);
   const [code, setCode] = useState<string>(() => {
@@ -109,6 +113,12 @@ export function CodeEditorPanel({
     }, 700);
   }, [challengeId, language, code, onMockRun]);
 
+  const handleSubmit = useCallback(() => {
+    if (onSubmit) {
+      onSubmit(code);
+    }
+  }, [code, onSubmit]);
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -184,6 +194,17 @@ export function CodeEditorPanel({
           >
             {status === "running" ? "Đang chạy (mock)..." : "Run mock"}
           </Button>
+          {onSubmit && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !code.trim()}
+              className="text-xs"
+            >
+              {isSubmitting ? "Đang nộp..." : "Submit for Grading"}
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

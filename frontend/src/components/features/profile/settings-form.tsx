@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { apiClient } from "@/lib/api-client";
 import type { UserPreferences } from "@/lib/profile-mock";
 import { useLocale } from "@/components/providers/locale-provider";
+import { toast } from "sonner";
 
 interface SettingsFormProps {
   initialPreferences: UserPreferences;
@@ -33,8 +34,11 @@ export function SettingsForm({ initialPreferences, onSave }: SettingsFormProps) 
       const updated = await apiClient.updateUserPreferences(preferences);
       onSave(updated);
       setHasChanges(false);
+      toast.success(t.settings.savedSuccessfully);
     } catch (error) {
       console.error("Failed to save preferences:", error);
+      const message = error instanceof Error ? error.message : t.settings.saveFailed;
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }

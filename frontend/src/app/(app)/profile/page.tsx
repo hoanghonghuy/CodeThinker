@@ -1,20 +1,32 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileStatsCard } from "@/components/features/profile/profile-stats-card";
 import { SettingsForm } from "@/components/features/profile/settings-form";
 import { apiClient } from "@/lib/api-client";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import type { UserPreferences, ProfileStats } from "@/lib/profile-mock";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   const { t } = useLocale();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      setError("Bạn cần đăng nhập để xem hồ sơ cá nhân.");
+      return;
+    }
+
     const loadData = async () => {
       try {
         const [statsData, preferencesData] = await Promise.all([
@@ -23,22 +35,37 @@ export default function ProfilePage() {
         ]);
         setStats(statsData);
         setPreferences(preferencesData);
+        setError(null);
       } catch (error) {
         console.error("Failed to load profile data:", error);
+        setError(t.profile.loadFailed);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [authLoading, user, t.profile.loadFailed]);
 
   const handlePreferencesSave = (updatedPreferences: UserPreferences) => {
     setPreferences(updatedPreferences);
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return <div>{t.profile.loadingProfile}</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4 rounded-lg border p-6 text-center">
+        <p className="text-sm text-muted-foreground">{error}</p>
+        {!user && (
+          <Button asChild>
+            <Link href="/login?next=/profile">Đăng nhập</Link>
+          </Button>
+        )}
+      </div>
+    );
   }
 
   if (!stats || !preferences) {

@@ -167,12 +167,21 @@ export type Messages = {
     fontSize: string;
     wordWrap: string;
     minimap: string;
+    minimapDesc: string;
+    saving: string;
+    saveChanges: string;
+    savedSuccessfully: string;
+    saveFailed: string;
+    reset: string;
+    preferredLanguages: string;
     emailNotifications: string;
     pushNotifications: string;
     weeklyProgress: string;
-    saveChanges: string;
-    saving: string;
-    reset: string;
+    notifications: {
+      emailDesc: string;
+      pushDesc: string;
+      weeklyDesc: string;
+    };
     themes: {
       dark: string;
       light: string;
@@ -184,12 +193,6 @@ export type Messages = {
       atColumn: string;
       bounded: string;
     };
-    notifications: {
-      emailDesc: string;
-      pushDesc: string;
-      weeklyDesc: string;
-    };
-    minimapDesc: string;
   };
 };
 
@@ -324,7 +327,7 @@ export const messages: Record<Locale, Messages> = {
       subtitle: "Xem thứ hạng của bạn so với những người học khác trên nền tảng.",
       yourRanking: "Thứ hạng của bạn",
       filtersAndSorting: "Bộ lọc & Sắp xếp",
-      timeframe: "Khoảng thời gian",
+      timeframe: "Khoảng thởi gian",
       sortBy: "Sắp xếp theo",
       reset: "Reset",
       top10: "Top 10 người học",
@@ -340,7 +343,7 @@ export const messages: Record<Locale, Messages> = {
       you: "Bạn",
       days: "ngày",
       timeframes: {
-        allTime: "Tất cả thời gian",
+        allTime: "Tất cả thởi gian",
         monthly: "Tháng này",
         weekly: "Tuần này",
       },
@@ -361,16 +364,25 @@ export const messages: Record<Locale, Messages> = {
       preferredLanguage: "Ngôn ngữ lập trình ưa thích",
       uiLanguage: "Ngôn ngữ giao diện",
       selfAssessedLevel: "Trình độ tự đánh giá",
-      theme: "Chủ đề",
+      theme: "Giao diện",
       fontSize: "Cỡ chữ",
-      wordWrap: "Word Wrap",
-      minimap: "Hiển thị Minimap",
-      emailNotifications: "Email Notifications",
-      pushNotifications: "Push Notifications",
-      weeklyProgress: "Báo cáo tiến độ hàng tuần",
-      saveChanges: "Lưu thay đổi",
+      wordWrap: "Xuống dòng",
+      minimap: "Minimap",
+      minimapDesc: "Hiển thị sơ đồ thu nhỏ bên cạnh",
       saving: "Đang lưu...",
-      reset: "Reset",
+      saveChanges: "Lưu thay đổi",
+      savedSuccessfully: "Đã lưu cài đặt",
+      saveFailed: "Không thể lưu cài đặt",
+      reset: "Đặt lại",
+      preferredLanguages: "Ngôn ngữ ưu tiên",
+      emailNotifications: "Thông báo qua email",
+      pushNotifications: "Thông báo đẩy",
+      weeklyProgress: "Báo cáo tiến độ hàng tuần",
+      notifications: {
+        emailDesc: "Nhận thông báo qua email",
+        pushDesc: "Nhận thông báo đẩy trên trình duyệt",
+        weeklyDesc: "Nhận email tổng kết tiến độ học tập",
+      },
       themes: {
         dark: "Dark",
         light: "Light",
@@ -382,12 +394,6 @@ export const messages: Record<Locale, Messages> = {
         atColumn: "At Column",
         bounded: "Bounded",
       },
-      notifications: {
-        emailDesc: "Nhận thông báo qua email",
-        pushDesc: "Nhận thông báo đẩy trên trình duyệt",
-        weeklyDesc: "Nhận email tổng kết tiến độ học tập",
-      },
-      minimapDesc: "Hiển thị bản đồ thu nhỏ của code",
     },
   },
   en: {
@@ -554,19 +560,28 @@ export const messages: Record<Locale, Messages> = {
       notificationSettings: "Notification Settings",
       displayName: "Display Name",
       email: "Email",
-      preferredLanguage: "Preferred Programming Language",
+      preferredLanguage: "Preferred Language",
       uiLanguage: "UI Language",
       selfAssessedLevel: "Self-Assessed Level",
       theme: "Theme",
       fontSize: "Font Size",
       wordWrap: "Word Wrap",
-      minimap: "Show Minimap",
+      minimap: "Minimap",
+      minimapDesc: "Show minimap on the side",
+      saving: "Saving...",
+      saveChanges: "Save Changes",
+      savedSuccessfully: "Preferences saved",
+      saveFailed: "Failed to save preferences",
+      reset: "Reset",
+      preferredLanguages: "Preferred Languages",
       emailNotifications: "Email Notifications",
       pushNotifications: "Push Notifications",
       weeklyProgress: "Weekly Progress Report",
-      saveChanges: "Save Changes",
-      saving: "Saving...",
-      reset: "Reset",
+      notifications: {
+        emailDesc: "Receive notifications via email",
+        pushDesc: "Receive push notifications in browser",
+        weeklyDesc: "Receive weekly progress summary email",
+      },
       themes: {
         dark: "Dark",
         light: "Light",
@@ -578,12 +593,6 @@ export const messages: Record<Locale, Messages> = {
         atColumn: "At Column",
         bounded: "Bounded",
       },
-      notifications: {
-        emailDesc: "Receive notifications via email",
-        pushDesc: "Receive push notifications in browser",
-        weeklyDesc: "Receive weekly progress summary email",
-      },
-      minimapDesc: "Show minimap of code",
     },
   },
 };

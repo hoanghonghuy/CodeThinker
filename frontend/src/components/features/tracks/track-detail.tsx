@@ -1,7 +1,14 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import type { TrackWithProgress } from "@/lib/tracks-mock";
 import type { ChallengeSummary as ChallengeSummaryType } from "@/components/features/challenges/challenge-list";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useAuth } from "@/components/providers/auth-provider";
+import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
 
 interface TrackDetailProps {
   track: TrackWithProgress;
@@ -10,10 +17,40 @@ interface TrackDetailProps {
 
 export function TrackDetail({ track, challenges }: TrackDetailProps) {
   const { t } = useLocale();
+  const { user } = useAuth();
+  const [isStarting, setIsStarting] = useState(false);
   
   const trackChallenges = challenges.filter((c) =>
     track.challengeIds.includes(c.id),
   );
+
+  const handleStartTrack = async () => {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để bắt đầu lộ trình.");
+      return;
+    }
+    setIsStarting(true);
+    try {
+      await apiClient.startTrack(track.id);
+      toast.success("Đã bắt đầu lộ trình!");
+      // Optionally refetch progress or update local state
+    } catch (error) {
+      console.error("Failed to start track:", error);
+      toast.error("Không thể bắt đầu lộ trình.");
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleContinueTrack = () => {
+    // Navigate to first uncompleted challenge or track overview
+    const nextChallenge = trackChallenges.find(c => c.status !== "completed");
+    if (nextChallenge) {
+      window.location.href = `/challenges/${nextChallenge.id}`;
+    } else {
+      toast.info("Bạn đã hoàn thành tất cả thử thách trong lộ trình này!");
+    }
+  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -154,14 +191,22 @@ export function TrackDetail({ track, challenges }: TrackDetailProps) {
           ← {t.tracks.backToTracks}
         </Link>
         {track.status === "not_started" && (
-          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            {t.tracks.startTrack}
-          </button>
+          <Button
+            onClick={handleStartTrack}
+            disabled={isStarting || !user}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            {isStarting ? "Đang bắt đầu..." : t.tracks.startTrack}
+          </Button>
         )}
         {track.status === "in_progress" && (
-          <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <Button
+            onClick={handleContinueTrack}
+            disabled={!user}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
             {t.tracks.continueTrack}
-          </button>
+          </Button>
         )}
       </div>
     </div>

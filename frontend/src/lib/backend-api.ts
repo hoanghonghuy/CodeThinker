@@ -133,6 +133,40 @@ export interface PagedResult<T> {
   hasPreviousPage: boolean;
 }
 
+export interface ProfileResponse {
+  id: string;
+  email: string;
+  displayName: string;
+  preferredLanguage: string;
+  uiLanguage: string;
+  selfAssessedLevel: string;
+  editorTheme: string;
+  editorFontSize: number;
+  editorWordWrap: string;
+  editorMinimap: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  weeklyProgress: boolean;
+  points: number;
+  streak: number;
+  completedChallenges: number;
+  lastActive: string;
+}
+
+export interface UpdateProfileRequest {
+  displayName: string;
+  preferredLanguage: string;
+  uiLanguage: string;
+  selfAssessedLevel: string;
+  editorTheme: string;
+  editorFontSize: number;
+  editorWordWrap: string;
+  editorMinimap: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  weeklyProgress: boolean;
+}
+
 // Auth API
 export const authApi = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -178,6 +212,40 @@ export const authApi = {
 
     if (!response.ok) {
       throw new Error('Failed to get current user');
+    }
+
+    return response.json();
+  },
+};
+
+// Profile API
+export const profileApi = {
+  async getProfile(token: string): Promise<ProfileResponse> {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get profile');
+    }
+
+    return response.json();
+  },
+
+  async updateProfile(token: string, payload: UpdateProfileRequest): Promise<ProfileResponse> {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
     }
 
     return response.json();
@@ -343,6 +411,55 @@ export const tracksApi = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to start track');
+    }
+
+    return response.json();
+  },
+};
+
+// User Progress API
+export const userProgressApi = {
+  async getRecentProgress(token: string, count = 5): Promise<UserChallengeProgress[]> {
+    const response = await fetch(`${API_BASE_URL}/userprogress/recent?count=${count}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get recent progress');
+    }
+
+    return response.json();
+  },
+
+  async getDailyProgress(token: string): Promise<UserChallengeProgress | null> {
+    const response = await fetch(`${API_BASE_URL}/userprogress/daily`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to get daily progress');
+    }
+
+    return response.json();
+  },
+
+  async getTrackProgress(token: string, trackId: string): Promise<UserTrackProgress> {
+    const response = await fetch(`${API_BASE_URL}/userprogress/track/${trackId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get track progress');
     }
 
     return response.json();

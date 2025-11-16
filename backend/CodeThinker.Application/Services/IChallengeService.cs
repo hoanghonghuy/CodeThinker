@@ -32,4 +32,13 @@ public interface IChallengeService
         int page = 1,
         int pageSize = 20,
         CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<UserChallengeProgressDto>> GetUserRecentProgressAsync(
+        Guid userId,
+        int count = 5,
+        CancellationToken cancellationToken = default);
+
+    Task<UserChallengeProgressDto?> GetDailyChallengeProgressAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default);
 }

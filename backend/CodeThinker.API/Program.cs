@@ -90,6 +90,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, JwtService>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();
 builder.Services.AddScoped<ITrackService, TrackService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 // Controllers
 builder.Services.AddControllers();

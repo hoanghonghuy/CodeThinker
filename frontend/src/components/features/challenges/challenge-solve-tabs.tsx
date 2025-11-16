@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CodeEditorPanel, type RunStatus } from "@/components/features/editor/code-editor-panel";
+import { apiClient } from "@/lib/api-client";
+import { useAuth } from "@/components/providers/auth-provider";
 import type { ChallengeSummary } from "@/components/features/challenges/challenge-list";
 
 type ChallengeSolveChallenge = ChallengeSummary & {
@@ -25,7 +29,55 @@ export function ChallengeSolveTabs({
 }: {
   challenge: ChallengeSolveChallenge;
 }) {
+  const { user } = useAuth();
   const [history, setHistory] = useState<SubmissionHistoryEntry[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    // Check if challenge was already started (could be expanded to fetch progress)
+    setHasStarted(false);
+  }, [challenge.id]);
+
+  const handleStartChallenge = async () => {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để bắt đầu thử thách.");
+      return;
+    }
+    try {
+      const progress = await apiClient.startChallenge(challenge.id);
+      if (progress) {
+        setHasStarted(true);
+        toast.success("Đã bắt đầu thử thách!");
+      }
+    } catch (error) {
+      console.error("Failed to start challenge:", error);
+      toast.error("Không thể bắt đầu thử thách.");
+    }
+  };
+
+  const handleSubmitSolution = async (solution: string) => {
+    if (!user) {
+      toast.error("Bạn cần đăng nhập để nộp bài.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const result = await apiClient.submitChallenge(challenge.id, solution);
+      if (result) {
+        if (result.isCorrect) {
+          toast.success(`Chính xác! +${result.pointsEarned} điểm`);
+        } else {
+          toast.error(result.message);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to submit challenge:", error);
+      toast.error("Không thể nộp bài.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleMockRun = (payload: {
     challengeId: string;
@@ -83,6 +135,24 @@ export function ChallengeSolveTabs({
             </div>
           </CardContent>
         </Card>
+        {!hasStarted && user && (
+          <Card>
+            <CardContent className="pt-6">
+              <Button onClick={handleStartChallenge} className="w-full">
+                Bắt đầu thử thách
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        {!user && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground text-center">
+                Bạn cần đăng nhập để bắt đầu thử thách.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="editor">
@@ -90,6 +160,8 @@ export function ChallengeSolveTabs({
           challengeId={challenge.id}
           initialLanguage="python"
           onMockRun={handleMockRun}
+          onSubmit={handleSubmitSolution}
+          isSubmitting={isSubmitting}
         />
       </TabsContent>
 
