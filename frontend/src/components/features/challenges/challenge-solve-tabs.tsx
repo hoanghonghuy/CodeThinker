@@ -6,7 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CodeEditorPanel, type RunStatus } from "@/components/features/editor/code-editor-panel";
-import type { ChallengeWithSummary } from "@/lib/challenges-mock";
+import type { ChallengeSummary } from "@/components/features/challenges/challenge-list";
+
+type ChallengeSolveChallenge = ChallengeSummary & {
+  summary?: string;
+};
 
 export type SubmissionHistoryEntry = {
   id: string;
@@ -19,7 +23,7 @@ export type SubmissionHistoryEntry = {
 export function ChallengeSolveTabs({
   challenge,
 }: {
-  challenge: ChallengeWithSummary;
+  challenge: ChallengeSolveChallenge;
 }) {
   const [history, setHistory] = useState<SubmissionHistoryEntry[]>([]);
 
@@ -58,7 +62,10 @@ export function ChallengeSolveTabs({
             <CardTitle>Mô tả chi tiết</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>{challenge.summary}</p>
+            <p>
+              {challenge.summary ??
+                "Chi tiết bài toán sẽ được lấy từ backend trong các bản cập nhật tiếp theo. Hiện tại hiển thị mô tả tóm tắt từ ChallengeSummary."}
+            </p>
             <p>
               Phần này sau này sẽ được lấy từ backend, bao gồm mô tả đầy đủ, định
               dạng input/output và các ràng buộc chi tiết hơn.
