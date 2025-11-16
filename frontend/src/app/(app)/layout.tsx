@@ -8,10 +8,13 @@ import { LocaleProvider, useLocale } from "@/components/providers/locale-provide
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/components/providers/auth-provider";
+import { Button } from "@/components/ui/button";
 
 function AppShell({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useLocale();
   const pathname = usePathname();
+  const { user, logout, loading } = useAuth();
 
   const toggleLocale = () => {
     setLocale(locale === "vi" ? "en" : "vi");
@@ -34,7 +37,7 @@ function AppShell({ children }: { children: ReactNode }) {
             </span>
             <span className="text-xs text-muted-foreground">{t.app.versionTag}</span>
           </Link>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-1 items-center justify-end gap-4 text-sm text-muted-foreground">
             <nav className="flex items-center gap-4">
               <Link
                 href="/dashboard"
@@ -96,22 +99,39 @@ function AppShell({ children }: { children: ReactNode }) {
               >
                 {locale === "vi" ? t.common.languageEn : t.common.languageVi}
               </button>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                  IL
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                    {user.displayName?.slice(0, 2)?.toUpperCase() ?? "ME"}
+                  </div>
+                  <div className="hidden text-right sm:flex sm:flex-col">
+                    <span className="text-xs font-medium text-foreground">
+                      {user.displayName || user.email}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">{user.email}</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    Đăng xuất
+                  </Button>
                 </div>
-                <div className="hidden text-right sm:flex sm:flex-col">
-                  <span className="text-xs font-medium text-foreground">
-                    Independent Learner
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    learner@example.com
-                  </span>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/login">Đăng nhập</Link>
+                  </Button>
+                  <Button size="sm" asChild>
+                    <Link href="/register">Đăng ký</Link>
+                  </Button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
+        {!loading && !user && (
+          <div className="border-t bg-amber-50 px-4 py-2 text-xs text-amber-900">
+            Bạn đang trải nghiệm dữ liệu mock. Đăng nhập để đồng bộ thử thách, lộ trình và tiến độ thật.
+          </div>
+        )}
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
       <Toaster />

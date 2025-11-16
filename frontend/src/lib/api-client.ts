@@ -6,6 +6,8 @@ import type {
 import type { Track, TrackStatus, TrackWithProgress } from "@/lib/tracks-mock";
 import { challengesApi, tracksApi, authApi } from "@/lib/backend-api";
 
+export const ACCESS_TOKEN_KEY = "ct.accessToken";
+
 // Backend DTO interfaces to replace 'any' types
 interface BackendChallengeDto {
   id: string;
@@ -86,7 +88,7 @@ import {
 // Helper function to get auth token from localStorage
 const getAuthToken = (): string => {
   if (typeof window === 'undefined') return '';
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   return token || '';
 };
 
