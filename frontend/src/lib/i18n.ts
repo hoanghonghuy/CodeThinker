@@ -140,6 +140,7 @@ export type Messages = {
     country: string;
     lastActive: string;
     you: string;
+    days: string;
     timeframes: {
       allTime: string;
       monthly: string;
@@ -337,6 +338,7 @@ export const messages: Record<Locale, Messages> = {
       country: "Quốc gia",
       lastActive: "Hoạt động lần cuối",
       you: "Bạn",
+      days: "ngày",
       timeframes: {
         allTime: "Tất cả thời gian",
         monthly: "Tháng này",
@@ -532,6 +534,7 @@ export const messages: Record<Locale, Messages> = {
       country: "Country",
       lastActive: "Last Active",
       you: "You",
+      days: "days",
       timeframes: {
         allTime: "All Time",
         monthly: "This Month",
