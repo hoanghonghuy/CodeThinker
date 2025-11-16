@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { TrackWithProgress } from "@/lib/tracks-mock";
-import type { ChallengeSummary as ChallengeSummaryType } from "@/lib/challenges-mock";
+import type { ChallengeSummary as ChallengeSummaryType } from "@/components/features/challenges/challenge-list";
 import { useLocale } from "@/components/providers/locale-provider";
 
 interface TrackDetailProps {
