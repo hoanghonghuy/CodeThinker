@@ -1,5 +1,10 @@
-import type { ChallengeSummary, ChallengeDifficulty, ChallengeStatus } from "@/components/features/challenges/challenge-list";
+import type {
+  ChallengeSummary,
+  ChallengeDifficulty,
+  ChallengeStatus,
+} from "@/components/features/challenges/challenge-list";
 import type { Track, TrackStatus, TrackWithProgress } from "@/lib/tracks-mock";
+import { challengesApi, tracksApi, authApi } from "@/lib/backend-api";
 
 // Backend DTO interfaces to replace 'any' types
 interface BackendChallengeDto {
@@ -43,8 +48,6 @@ interface BackendTrackDto {
   challengeIds?: string[];
 }
 
-// API client for backend integration - TypeScript cache refresh
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 import {
   getAchievementsMock,
   getDailyChallengeMock,
@@ -94,7 +97,9 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const response = await challengesApi.getChallenges(token, { pageSize: 100 });
-      return response.items.map((challenge: BackendChallengeDto) => transformChallengeSummary(challenge));
+      return response.items.map((challenge) =>
+        transformChallengeSummary(challenge as BackendChallengeDto),
+      );
     } catch (error) {
       console.error('Failed to fetch challenges from backend, using mock data:', error);
       // Fallback to mock data if backend fails
@@ -107,7 +112,7 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const challenge = await challengesApi.getChallengeById(token, id);
-      return transformChallengeDetail(challenge);
+      return transformChallengeDetail(challenge as BackendChallengeDto);
     } catch (error) {
       console.error('Failed to fetch challenge from backend, using mock data:', error);
       // Fallback to mock data if backend fails
@@ -141,7 +146,7 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const response = await tracksApi.getTracks(token, { pageSize: 100 });
-      return response.items.map(transformTrackSummary);
+      return response.items.map((track) => transformTrackSummary(track as BackendTrackDto));
     } catch (error) {
       console.error('Failed to fetch tracks from backend, using mock data:', error);
       // Fallback to mock data if backend fails
@@ -153,7 +158,7 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const track = await tracksApi.getTrackById(token, id);
-      return transformTrackDetail(track);
+      return transformTrackDetail(track as BackendTrackDto);
     } catch (error) {
       console.error('Failed to fetch track from backend, using mock data:', error);
       // Fallback to mock data if backend fails
@@ -165,7 +170,7 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const response = await tracksApi.getTracks(token, { pageSize: 100 });
-      const tracks = response.items.map((track: BackendTrackDto) => transformTrackSummary(track));
+      const tracks = response.items.map((track) => transformTrackSummary(track as BackendTrackDto));
       const challenges = await this.listChallenges();
       return tracks.map((track) => enrichTrackWithProgress(track, challenges));
     } catch (error) {
@@ -181,7 +186,7 @@ export const apiClient = {
     try {
       const token = getAuthToken();
       const track = await tracksApi.getTrackById(token, id);
-      const trackSummary = transformTrackDetail(track);
+      const trackSummary = transformTrackDetail(track as BackendTrackDto);
       const challenges = await this.listChallenges();
       return enrichTrackWithProgress(trackSummary, challenges);
     } catch (error) {
