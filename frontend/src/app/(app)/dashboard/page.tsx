@@ -13,6 +13,7 @@ import {
 import { DailyChallengeCard } from "@/components/features/dashboard/daily-challenge-card";
 import { RecentActivityList } from "@/components/features/dashboard/recent-activity-list";
 import { AchievementsPreview } from "@/components/features/dashboard/achievements-preview";
+import { ProgressChart } from "@/components/features/dashboard/progress-chart";
 import { apiClient } from "@/lib/api-client";
 import type {
   DailyChallengeSummary,
@@ -154,6 +155,22 @@ export default function DashboardPage() {
       </div>
 
       <RecentActivityList items={recentActivity} />
+      <ProgressChart weeklyCounts={getWeeklyMockData()} />
     </div>
   );
+}
+
+// Simple mock data for weekly progress; replace with backend later
+function getWeeklyMockData() {
+  const today = new Date();
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    week.push({
+      day: d.toLocaleDateString("vi-VN", { weekday: "short" }),
+      count: Math.floor(Math.random() * 4),
+    });
+  }
+  return week;
 }

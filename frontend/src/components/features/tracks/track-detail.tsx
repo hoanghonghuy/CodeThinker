@@ -77,11 +77,11 @@ export function TrackDetail({ track, challenges }: TrackDetailProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
-        return "text-green-600 dark:text-green-400";
+        return "text-green-700 dark:text-green-300";
       case "Medium":
-        return "text-yellow-600 dark:text-yellow-400";
+        return "text-yellow-700 dark:text-yellow-300";
       case "Hard":
-        return "text-red-600 dark:text-red-400";
+        return "text-red-700 dark:text-red-300";
       default:
         return "text-muted-foreground";
     }

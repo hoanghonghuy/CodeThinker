@@ -128,7 +128,7 @@ function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         {!loading && !user && (
-          <div className="border-t bg-amber-50 px-4 py-2 text-xs text-amber-900">
+          <div className="border-t bg-muted px-4 py-2 text-xs text-muted-foreground">
             Bạn đang trải nghiệm dữ liệu mock. Đăng nhập để đồng bộ thử thách, lộ trình và tiến độ thật.
           </div>
         )}
