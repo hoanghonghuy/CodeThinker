@@ -13,7 +13,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 
 type SupportedLanguage = "python" | "csharp";
 
-export type RunStatus = "idle" | "running" | "success" | "error";
+export type RunStatus = "idle" | "running" | "success" | "error" | "passed" | "failed" | "timeout";
 
 export type CodeEditorPanelProps = {
   challengeId: string;

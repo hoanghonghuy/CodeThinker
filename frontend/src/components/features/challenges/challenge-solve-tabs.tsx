@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,9 +46,9 @@ export function ChallengeSolveTabs({
     // Check if challenge was already started and fetch submission history
     setHasStarted(false);
     fetchSubmissionHistory();
-  }, [challenge.id]);
+  }, [challenge.id, fetchSubmissionHistory]);
 
-  const fetchSubmissionHistory = async () => {
+  const fetchSubmissionHistory = useCallback(async () => {
     if (!user) return;
     try {
       const token = localStorage.getItem('token');
@@ -71,7 +71,7 @@ export function ChallengeSolveTabs({
     } catch (error) {
       console.error('Failed to fetch submission history:', error);
     }
-  };
+  }, [user, challenge.id]);
 
   const handleStartChallenge = async () => {
     if (!user) {
@@ -124,7 +124,7 @@ export function ChallengeSolveTabs({
         error: result.error,
       };
 
-      setHistory(prev => [historyEntry, ...prev]);
+      setHistory((prev) => [historyEntry, ...prev]);
 
       // Show appropriate toast
       if (result.status === 'Passed') {

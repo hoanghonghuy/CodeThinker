@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { Messages } from "@/lib/i18n";
 import type { ProgressSummaryResponse } from "@/lib/backend-api";
 
