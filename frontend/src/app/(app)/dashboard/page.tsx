@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] =
     useState<RecentActivityEntry[] | null>(null);
   const [dailyProgress, setDailyProgress] = useState<DailyProgressDto[]>([]);
-  const [progressSummary, setProgressSummary] = useState<ProgressSummaryResponse | null>(null);
+  const [progressSummary, setProgressSummary] = useState<ProgressSummaryResponse | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
