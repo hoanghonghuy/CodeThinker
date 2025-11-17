@@ -102,6 +102,12 @@ builder.Services.AddScoped<ISeedService, SeedService>();
 builder.Services.AddScoped<ITrackService, TrackService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
+// Code execution and gamification services
+builder.Services.AddScoped<ICodeRunner, CodeRunner>();
+builder.Services.AddScoped<IScoringService, ScoringService>();
+builder.Services.AddScoped<ILevelService, LevelService>();
+builder.Services.AddScoped<IStreakService, StreakService>();
+
 // Controllers
 builder.Services.AddControllers();
 

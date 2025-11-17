@@ -15,10 +15,12 @@ import { RecentActivityList } from "@/components/features/dashboard/recent-activ
 import { AchievementsPreview } from "@/components/features/dashboard/achievements-preview";
 import { ProgressChart } from "@/components/features/dashboard/progress-chart";
 import { apiClient } from "@/lib/api-client";
+import { progressApi } from "@/lib/backend-api";
 import type {
   DailyChallengeSummary,
   RecentActivityEntry,
 } from "@/lib/dashboard-mock";
+import type { ProgressSummaryResponse, DailyProgressDto } from "@/lib/backend-api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
@@ -31,6 +33,7 @@ export default function DashboardPage() {
     useState<DailyChallengeSummary | null>(null);
   const [recentActivity, setRecentActivity] =
     useState<RecentActivityEntry[] | null>(null);
+  const [dailyProgress, setDailyProgress] = useState<DailyProgressDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,22 +49,32 @@ export default function DashboardPage() {
 
     (async () => {
       try {
-        const [dashboard, daily, recent] = await Promise.all([
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const [dashboard, daily, recent, progressSummary, dailyProgressData] = await Promise.all([
           apiClient.getDashboardSummary(),
           apiClient.getDailyChallenge(),
           apiClient.getRecentActivity(),
+          progressApi.getProgressSummary(token),
+          progressApi.getDailyProgress(token, 7),
         ]);
 
-        if (cancelled) return;
-
-        setSummary(dashboard.summary);
-        setFocusAreas(dashboard.focusAreas);
-        setDailyChallenge(daily);
-        setRecentActivity(recent);
-        setError(null);
+        if (!cancelled) {
+          setSummary(dashboard.summary);
+          setFocusAreas(dashboard.focusAreas);
+          setDailyChallenge(daily);
+          setRecentActivity(recent);
+          setDailyProgress(dailyProgressData);
+          setError(null);
+        }
       } catch (err) {
         console.error("Failed to load dashboard:", err);
-        setError("Không thể tải dữ liệu dashboard.");
+        if (!cancelled) {
+          setError("Không thể tải dữ liệu dashboard.");
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -155,22 +168,15 @@ export default function DashboardPage() {
       </div>
 
       <RecentActivityList items={recentActivity} />
-      <ProgressChart weeklyCounts={getWeeklyMockData()} />
+      <ProgressChart weeklyCounts={getWeeklyData(dailyProgress)} />
     </div>
   );
 }
 
-// Simple mock data for weekly progress; replace with backend later
-function getWeeklyMockData() {
-  const today = new Date();
-  const week = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    week.push({
-      day: d.toLocaleDateString("vi-VN", { weekday: "short" }),
-      count: Math.floor(Math.random() * 4),
-    });
-  }
-  return week;
+// Convert daily progress data to weekly chart format
+function getWeeklyData(dailyProgress: DailyProgressDto[]) {
+  return dailyProgress.map(day => ({
+    day: new Date(day.date).toLocaleDateString("vi-VN", { weekday: "short" }),
+    count: day.completedCount,
+  }));
 }

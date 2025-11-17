@@ -30,4 +30,6 @@ public class User : Common.BaseEntity
     public virtual ICollection<UserChallenge> UserChallenges { get; set; } = new List<UserChallenge>();
     public virtual ICollection<UserAchievement> Achievements { get; set; } = new List<UserAchievement>();
     public virtual ICollection<UserTrack> Tracks { get; set; } = new List<UserTrack>();
+    public virtual ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+    public virtual UserStats? UserStats { get; set; }
 }

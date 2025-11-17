@@ -48,6 +48,54 @@ export interface UserResponse {
 export interface ChallengeSummary {
   id: string;
   title: string;
+}
+
+// Submission types
+export interface SubmitCodeRequest {
+  challengeId: string;
+  language: string;
+  code: string;
+}
+
+export interface SubmissionResponse {
+  id: string;
+  challengeId?: string;
+  language: string;
+  status: string;
+  output?: string;
+  error?: string;
+  pointsAwarded: number;
+  executionTimeMs: number;
+  submittedAt: string;
+  completedAt?: string;
+}
+
+// Progress types
+export interface ProgressSummaryResponse {
+  totalPoints: number;
+  currentLevel: number;
+  currentStreak: number;
+  completedChallenges: number;
+  totalSubmissions: number;
+  lastActiveAt: string;
+  recentActivity: RecentActivityDto[];
+}
+
+export interface RecentActivityDto {
+  submissionId: string;
+  challengeId: string;
+  challengeTitle: string;
+  status: string;
+  submittedAt: string;
+  pointsAwarded: number;
+}
+
+export interface DailyProgressDto {
+  date: string;
+  submissionsCount: number;
+  completedCount: number;
+  pointsEarned: number;
+}
   description: string;
   difficulty: string;
   topics: string[];
@@ -452,26 +500,79 @@ export const userProgressApi = {
       },
     });
 
-    if (response.status === 404) {
-      return null;
-    }
-
     if (!response.ok) {
       throw new Error('Failed to get daily progress');
     }
 
     return response.json();
   },
+};
 
-  async getTrackProgress(token: string, trackId: string): Promise<UserTrackProgress> {
-    const response = await fetch(`${API_BASE_URL}/userprogress/track/${trackId}`, {
+// Submission API
+export const submissionApi = {
+  async submitCode(token: string, request: SubmitCodeRequest): Promise<SubmissionResponse> {
+    const response = await fetch(`${API_BASE_URL}/submissions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to submit code');
+    }
+
+    return response.json();
+  },
+
+  async getSubmissions(token: string, challengeId?: string, page = 1, pageSize = 20): Promise<SubmissionResponse[]> {
+    const url = new URL(`${API_BASE_URL}/submissions`);
+    if (challengeId) url.searchParams.append('challengeId', challengeId);
+    url.searchParams.append('page', page.toString());
+    url.searchParams.append('pageSize', pageSize.toString());
+
+    const response = await fetch(url.toString(), {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to get track progress');
+      throw new Error('Failed to get submissions');
+    }
+
+    return response.json();
+  },
+};
+
+// Progress API
+export const progressApi = {
+  async getProgressSummary(token: string): Promise<ProgressSummaryResponse> {
+    const response = await fetch(`${API_BASE_URL}/progress/summary`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get progress summary');
+    }
+
+    return response.json();
+  },
+
+  async getDailyProgress(token: string, days = 7): Promise<DailyProgressDto[]> {
+    const response = await fetch(`${API_BASE_URL}/progress/daily?days=${days}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get daily progress');
     }
 
     return response.json();

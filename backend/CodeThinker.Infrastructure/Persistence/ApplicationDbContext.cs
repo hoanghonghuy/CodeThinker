@@ -17,6 +17,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserAchievement> UserAchievements { get; set; }
     public DbSet<UserTrack> UserTracks { get; set; }
     public DbSet<UserChallenge> UserChallenges { get; set; }
+    public DbSet<TestCase> TestCases { get; set; }
+    public DbSet<Submission> Submissions { get; set; }
+    public DbSet<UserStats> UserStats { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -132,6 +135,52 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Challenge)
                   .WithMany(c => c.UserProgress)
                   .HasForeignKey(e => e.ChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure TestCase
+        modelBuilder.Entity<TestCase>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Input).IsRequired();
+            entity.Property(e => e.ExpectedOutput).IsRequired();
+            
+            entity.HasOne(e => e.Challenge)
+                  .WithMany(c => c.TestCases)
+                  .HasForeignKey(e => e.ChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Submission
+        modelBuilder.Entity<Submission>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Code).IsRequired();
+            entity.Property(e => e.Language).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Status).HasMaxLength(20);
+            entity.Property(e => e.Output);
+            entity.Property(e => e.Error);
+            
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Submissions)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasOne(e => e.Challenge)
+                  .WithMany(c => c.Submissions)
+                  .HasForeignKey(e => e.ChallengeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure UserStats (one-to-one with User)
+        modelBuilder.Entity<UserStats>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.UserId).IsUnique();
+            
+            entity.HasOne(e => e.User)
+                  .WithOne(u => u.UserStats)
+                  .HasForeignKey<UserStats>(e => e.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

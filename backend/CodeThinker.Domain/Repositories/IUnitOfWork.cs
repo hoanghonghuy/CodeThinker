@@ -12,6 +12,14 @@ public interface IUnitOfWork : IDisposable
     IRepository<UserAchievement> UserAchievements { get; }
     IRepository<UserTrack> UserTracks { get; }
     IRepository<UserChallenge> UserChallenges { get; }
+    IRepository<TestCase> TestCases { get; }
+    IRepository<Submission> Submissions { get; }
+    IRepository<UserStats> UserStats { get; }
+
+    // Custom repository methods
+    ITestCaseRepository TestCasesCustom { get; }
+    ISubmissionRepository SubmissionsCustom { get; }
+    IUserStatsRepository UserStatsCustom { get; }
     
     // Transaction management
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

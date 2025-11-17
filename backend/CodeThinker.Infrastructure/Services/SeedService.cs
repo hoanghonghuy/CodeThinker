@@ -255,5 +255,64 @@ public class SeedService : ISeedService
         await _context.Challenges.AddRangeAsync(dsaChallenges);
         await _context.Challenges.AddRangeAsync(sqlChallenges);
         await _context.SaveChangesAsync();
+
+        // Create test cases for challenges
+        await SeedTestCasesAsync();
+    }
+
+    private async Task SeedTestCasesAsync()
+    {
+        var challenges = await _context.Challenges.ToListAsync();
+        var allTestCases = new List<TestCase>();
+
+        foreach (var challenge in challenges)
+        {
+            var testCases = challenge.Title.ToLowerInvariant() switch
+            {
+                var title when title.Contains("hello world") => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "", ExpectedOutput = "Hello, World!", IsHidden = false, Points = 10 }
+                },
+                var title when title.Contains("calculator") => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "2\n3\n+\n", ExpectedOutput = "5", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 2, Input = "10\n4\n-\n", ExpectedOutput = "6", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 3, Input = "7\n6\n*\n", ExpectedOutput = "42", IsHidden = true, Points = 15 }
+                },
+                var title when title.Contains("fibonacci") => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "5", ExpectedOutput = "5", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 2, Input = "10", ExpectedOutput = "55", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 3, Input = "20", ExpectedOutput = "6765", IsHidden = true, Points = 20 }
+                },
+                var title when title.Contains("prime") => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "7", ExpectedOutput = "Prime", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 2, Input = "10", ExpectedOutput = "Not Prime", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 3, Input = "97", ExpectedOutput = "Prime", IsHidden = true, Points = 15 }
+                },
+                var title when title.Contains("array") => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "5\n1 2 3 4 5", ExpectedOutput = "15", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 2, Input = "3\n10 20 30", ExpectedOutput = "60", IsHidden = false, Points = 10 },
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 3, Input = "4\n-1 2 -3 4", ExpectedOutput = "2", IsHidden = true, Points = 15 }
+                },
+                _ => new List<TestCase>
+                {
+                    new TestCase { Id = Guid.NewGuid(), ChallengeId = challenge.Id, Order = 1, Input = "test", ExpectedOutput = "test", IsHidden = false, Points = 10 }
+                }
+            };
+
+            foreach (var testCase in testCases)
+            {
+                testCase.CreatedAt = DateTime.UtcNow;
+                testCase.UpdatedAt = DateTime.UtcNow;
+            }
+
+            allTestCases.AddRange(testCases);
+        }
+
+        await _context.TestCases.AddRangeAsync(allTestCases);
+        await _context.SaveChangesAsync();
     }
 }
