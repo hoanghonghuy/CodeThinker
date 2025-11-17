@@ -387,18 +387,6 @@ export const apiClient = {
       throw error;
     }
   },
-
-  async getTrackProgress(id: string) {
-    try {
-      const token = getAuthToken();
-      if (!token) throw new Error("Missing auth token");
-      const progress = await userProgressApi.getTrackProgress(token, id);
-      return progress;
-    } catch (error) {
-      console.error("Failed to get track progress:", error);
-      throw error;
-    }
-  },
 };
 
 // Transform functions to convert backend API responses to frontend types
