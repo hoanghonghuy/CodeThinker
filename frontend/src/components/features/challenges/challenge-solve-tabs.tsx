@@ -42,12 +42,6 @@ export function ChallengeSolveTabs({
   const [hasStarted, setHasStarted] = useState(false);
   const [latestSubmission, setLatestSubmission] = useState<SubmissionResponse | null>(null);
 
-  useEffect(() => {
-    // Check if challenge was already started and fetch submission history
-    setHasStarted(false);
-    fetchSubmissionHistory();
-  }, [challenge.id, fetchSubmissionHistory]);
-
   const fetchSubmissionHistory = useCallback(async () => {
     if (!user) return;
     try {
@@ -72,6 +66,12 @@ export function ChallengeSolveTabs({
       console.error('Failed to fetch submission history:', error);
     }
   }, [user, challenge.id]);
+
+  useEffect(() => {
+    // Check if challenge was already started and fetch submission history
+    setHasStarted(false);
+    fetchSubmissionHistory();
+  }, [challenge.id, fetchSubmissionHistory]);
 
   const handleStartChallenge = async () => {
     if (!user) {
@@ -161,6 +161,10 @@ export function ChallengeSolveTabs({
         language: payload.language,
         message: payload.message,
         ranAt: payload.ranAt.toLocaleTimeString(),
+        pointsAwarded: 0, // Mock submissions don't award points
+        executionTimeMs: 0, // Mock submissions have no execution time
+        output: payload.message,
+        error: payload.status === 'error' ? payload.message : undefined,
       },
       ...prev,
     ]);
