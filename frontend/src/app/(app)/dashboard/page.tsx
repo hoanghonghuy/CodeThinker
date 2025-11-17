@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] =
     useState<RecentActivityEntry[] | null>(null);
   const [dailyProgress, setDailyProgress] = useState<DailyProgressDto[]>([]);
+  const [progressSummary, setProgressSummary] = useState<ProgressSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,7 @@ export default function DashboardPage() {
           setDailyChallenge(daily);
           setRecentActivity(recent);
           setDailyProgress(dailyProgressData);
+          setProgressSummary(progressSummary);
           setError(null);
         }
       } catch (err) {
@@ -158,6 +160,7 @@ export default function DashboardPage() {
         summary={summary}
         focusAreas={focusAreas}
         messages={t.dashboard}
+        realProgress={progressSummary}
       />
 
       <div className="grid gap-4 md:grid-cols-3">

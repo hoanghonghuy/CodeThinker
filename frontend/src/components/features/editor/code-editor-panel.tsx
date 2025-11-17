@@ -25,7 +25,7 @@ export type CodeEditorPanelProps = {
     message: string;
     ranAt: Date;
   }) => void;
-  onSubmit?: (solution: string) => void;
+  onSubmit?: (payload: { code: string; language: SupportedLanguage }) => void;
   isSubmitting?: boolean;
 };
 
@@ -115,9 +115,9 @@ export function CodeEditorPanel({
 
   const handleSubmit = useCallback(() => {
     if (onSubmit) {
-      onSubmit(code);
+      onSubmit({ code, language });
     }
-  }, [code, onSubmit]);
+  }, [code, language, onSubmit]);
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {

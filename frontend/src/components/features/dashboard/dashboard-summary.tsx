@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Messages } from "@/lib/i18n";
+import type { ProgressSummaryResponse } from "@/lib/backend-api";
 
 export type DashboardSummaryData = {
   points: number;
@@ -18,12 +19,14 @@ export type DashboardSummaryProps = {
   summary: DashboardSummaryData;
   focusAreas: FocusArea[];
   messages: Messages["dashboard"];
+  realProgress?: ProgressSummaryResponse;
 };
 
 export function DashboardSummary({
   summary,
   focusAreas,
   messages,
+  realProgress,
 }: DashboardSummaryProps) {
   return (
     <div className="space-y-4">
@@ -35,7 +38,9 @@ export function DashboardSummary({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{summary.points}</div>
+            <div className="text-2xl font-semibold">
+              {realProgress?.totalPoints || summary.points}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Điểm tích luỹ từ các thử thách đã hoàn thành.
             </p>
@@ -49,11 +54,11 @@ export function DashboardSummary({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              <Badge>{summary.level}</Badge>
+            <div className="text-2xl font-semibold">
+              Level {realProgress?.currentLevel || summary.level}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Level tính dựa trên tổng điểm.
+              Cấp độ hiện tại dựa trên tổng điểm.
             </p>
           </CardContent>
         </Card>
@@ -66,10 +71,10 @@ export function DashboardSummary({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold">
-              {summary.streak} ngày
+              {realProgress?.currentStreak || summary.streak} ngày
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {summary.completedChallenges} thử thách đã hoàn thành.
+              {realProgress?.completedChallenges || summary.completedChallenges} thử thách đã hoàn thành.
             </p>
           </CardContent>
         </Card>
