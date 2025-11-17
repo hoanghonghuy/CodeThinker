@@ -96,21 +96,6 @@ export interface DailyProgressDto {
   completedCount: number;
   pointsEarned: number;
 }
-  description: string;
-  difficulty: string;
-  topics: string[];
-  status: string;
-  estimatedHours: number;
-  tags: string[];
-  trackId?: string;
-  trackTitle?: string;
-  progressCurrent: number;
-  progressTotal: number;
-  isCompleted: boolean;
-  startedAt?: string;
-  completedAt?: string;
-}
-
 export interface ChallengeDetail extends ChallengeSummary {
   solution?: string;
   hints?: string;
